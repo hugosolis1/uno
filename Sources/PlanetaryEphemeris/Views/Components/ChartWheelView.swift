@@ -1,5 +1,21 @@
 import SwiftUI
 
+// MARK: - Helper Functions
+
+func normalizeDegrees(_ degrees: Double) -> Double {
+    let result = degrees.truncatingRemainder(dividingBy: 360)
+    return result < 0 ? result + 360 : result
+}
+
+func normalizeDegreesCGFloat(_ degrees: Double) -> CGFloat {
+    return CGFloat(normalizeDegrees(degrees))
+}
+
+private func drawText(_ context: inout GraphicsContext, text: Text, at point: CGPoint) {
+    context.draw(text, at: point)
+}
+
+
 struct ChartWheelView: View {
     let planetPositions: [PlanetPosition]
     let houseCusps: HouseCusps?
@@ -120,7 +136,7 @@ struct ChartWheelView: View {
                 .font(.system(size: 14, weight: .regular))
                 .foregroundColor(Theme.textPrimary)
 
-            context.resolve(signText).draw(in: context, at: textPoint, anchor: .center)
+            drawText(&context, text: signText, at: textPoint)
         }
     }
 
@@ -131,7 +147,7 @@ struct ChartWheelView: View {
             let cuspWithZero = [0.0] + houses.houseCusps
             guard index < cuspWithZero.count else { continue }
 
-            let degrees = ((cuspWithZero[index] % 360) + 360) % 360
+            let degrees = normalizeDegrees(cuspWithZero[index])
             let angle = Angle.degrees(degrees) - 90
 
             // Thicker lines for angular houses
@@ -154,7 +170,7 @@ struct ChartWheelView: View {
             // House number labels inside
             if index < 12 {
                 let nextIndex = index + 1
-                let nextDegrees = ((cuspWithZero[nextIndex] % 360) + 360) % 360
+                let nextDegrees = normalizeDegrees(cuspWithZero[nextIndex])
                 let midDegrees = ((degrees + nextDegrees) / 2.0).truncatingRemainder(dividingBy: 360)
                 let midAngle = Angle.degrees(midDegrees) - 90
                 let labelRadius = innerRadius + (outerRadius - innerRadius) * 0.35
@@ -165,7 +181,7 @@ struct ChartWheelView: View {
                     .font(.system(size: 9))
                     .foregroundColor(isAngular ? Theme.accentGold.opacity(0.7) : Theme.textSecondary.opacity(0.6))
 
-                context.resolve(houseNum).draw(in: context, at: CGPoint(x: labelX, y: labelY), anchor: .center)
+                drawText(&context, text: houseNum, at: CGPoint(x: labelX, y: labelY))
             }
         }
     }
@@ -186,7 +202,7 @@ struct ChartWheelView: View {
                 y: center.y + radius * sin(angle.radians)
             ))
         }
-        context.stroke(linePath, with: .color(color.opacity(0.8)), lineWidth: lineWidth, style: StrokeStyle(lineCap: .round))
+        context.stroke(linePath, with: .color(color.opacity(0.8)), lineWidth: lineWidth)
 
         // Label
         let labelRadius = radius + 12
@@ -197,7 +213,7 @@ struct ChartWheelView: View {
             .font(.system(size: 10, weight: .bold))
             .foregroundColor(color)
 
-        context.resolve(labelText).draw(in: context, at: CGPoint(x: labelX, y: labelY), anchor: .center)
+        drawText(&context, text: labelText, at: CGPoint(x: labelX, y: labelY))
     }
 
     // MARK: - Planet Symbols
@@ -207,7 +223,7 @@ struct ChartWheelView: View {
         var placedPositions: [CGPoint] = []
 
         for position in planetPositions {
-            let degrees = ((position.longitude % 360) + 360) % 360
+            let degrees = normalizeDegrees(position.longitude)
             let angle = Angle.degrees(degrees) - 90
 
             var pointX = center.x + radius * cos(angle.radians)
@@ -263,7 +279,7 @@ struct ChartWheelView: View {
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(planetColor)
 
-            context.resolve(symbolText).draw(in: context, at: CGPoint(x: pointX, y: pointY), anchor: .center)
+            drawText(&context, text: symbolText, at: CGPoint(x: pointX, y: pointY))
         }
     }
 

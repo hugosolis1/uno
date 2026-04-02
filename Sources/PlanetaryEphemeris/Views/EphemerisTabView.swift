@@ -131,7 +131,7 @@ struct EphemerisTabView: View {
                 .foregroundColor(Theme.textSecondary)
 
             Picker(title, selection: selection) {
-                ForEach(Array(stride(from: range.lowerBound, to: range.upperBound + 1, by: range.lowerBound is Int ? 1 : 1)), id: \.self) { value in
+                ForEach(Array(stride(from: range.lowerBound, to: range.upperBound + 1, by: 1)), id: \.self) { value in
                     Text("\(value)").tag(value)
                 }
             }

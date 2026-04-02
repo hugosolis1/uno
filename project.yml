@@ -1,0 +1,40 @@
+name: PlanetaryEphemeris
+options:
+  bundleIdPrefix: com.planetaryephemeris
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.0"
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+
+targets:
+  PlanetaryEphemeris:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: Sources/PlanetaryEphemeris
+        excludes:
+          - "**/*.xcassets/**"
+      - path: Vendor/swisseph/src
+        type: file
+        includes:
+          - "*.c"
+          - "*.h"
+    resources:
+      - path: Resources/ephe
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.planetaryephemeris.app
+        INFOPLIST_FILE: Sources/PlanetaryEphemeris/Info.plist
+        SWIFT_OBJC_BRIDGING_HEADER: Sources/PlanetaryEphemeris/PlanetaryEphemeris-Bridging-Header.h
+        HEADER_SEARCH_PATHS: $(SRCROOT)/Vendor/swisseph/src $(SRCROOT)/Sources/PlanetaryEphemeris
+        OTHER_LDFLAGS: -lm
+        GCC_PREPROCESSOR_DEFINITIONS: SWE_DPFMT='"f"' NO_MAIN NDEBUG
+        CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES: YES
+        ALWAYS_SEARCH_USER_PATHS: NO
+    info:
+      path: Sources/PlanetaryEphemeris/Info.plist

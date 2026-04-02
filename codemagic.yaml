@@ -1,0 +1,50 @@
+workflows:
+  ios-build:
+    name: iOS Build
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    
+    environment:
+      xcode: latest
+      cocoapods: default
+    
+    scripts:
+      - name: Initialize git submodules
+        script: |
+          git submodule update --init --recursive
+      
+      - name: Setup ephemeris data
+        script: |
+          chmod +x scripts/setup_ephemeris.sh
+          ./scripts/setup_ephemeris.sh
+      
+      - name: Install XcodeGen
+        script: |
+          brew install xcodegen || true
+      
+      - name: Generate Xcode project
+        script: |
+          xcodegen generate
+      
+      - name: Build unsigned IPA
+        script: |
+          xcodebuild clean build \
+            -project PlanetaryEphemeris.xcodeproj \
+            -scheme PlanetaryEphemeris \
+            -sdk iphoneos \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            ENABLE_BITCODE=NO
+      
+      - name: Create IPA
+        script: |
+          mkdir -p build/ipa/Payload
+          cp -r build/Build/Products/Release-iphoneos/PlanetaryEphemeris.app build/ipa/Payload/
+          cd build/ipa && zip -r PlanetaryEphemeris_unsigned.ipa Payload/
+          mv PlanetaryEphemeris_unsigned.ipa ../
+    
+    artifacts:
+      - build/PlanetaryEphemeris_unsigned.ipa

@@ -145,13 +145,13 @@ enum ZodiacSign: Int, CaseIterable {
     }
 
     static func fromDegrees(_ degrees: Double) -> ZodiacSign {
-        let normalized = ((degrees % 360) + 360) % 360
+        let normalized = normalizeDegrees(degrees)
         let index = Int(normalized / 30) % 12
         return ZodiacSign(rawValue: index) ?? .aries
     }
 
     static func positionInSign(_ degrees: Double) -> Double {
-        let normalized = ((degrees % 360) + 360) % 360
+        let normalized = normalizeDegrees(degrees)
         return normalized - Double(Int(normalized / 30)) * 30
     }
 }
@@ -186,7 +186,7 @@ struct PlanetPosition: Identifiable {
     }
 
     var formattedRA: String {
-        let normalized = ((rightAscension % 360) + 360) % 360
+        let normalized = normalizeDegrees(rightAscension)
         let hours = normalized / 15.0
         let h = Int(hours)
         let minutes = (hours - Double(h)) * 60
@@ -222,7 +222,7 @@ struct PlanetPosition: Identifiable {
     }
 
     private func formatDMS(_ degrees: Double, withSign: Bool) -> String {
-        let normalized = ((degrees % 360) + 360) % 360
+        let normalized = normalizeDegrees(degrees)
         let d = Int(normalized)
         let minutes = (normalized - Double(d)) * 60
         let m = Int(minutes)
@@ -275,11 +275,11 @@ struct HouseCusps {
     var formattedVertex: String { formatDegreesWithSign(vertex) }
 
     var ascendantDegrees: Double {
-        ((ascendant % 360) + 360) % 360
+        normalizeDegrees(ascendant)
     }
 
     var mcDegrees: Double {
-        ((mediumCoeli % 360) + 360) % 360
+        normalizeDegrees(mediumCoeli)
     }
 
     func formattedCusp(_ index: Int) -> String {
@@ -289,7 +289,7 @@ struct HouseCusps {
     }
 
     private func formatDegreesWithSign(_ deg: Double) -> String {
-        let normalized = ((deg % 360) + 360) % 360
+        let normalized = normalizeDegrees(deg)
         let sign = ZodiacSign.fromDegrees(normalized)
         let d = Int(normalized)
         let minutes = (normalized - Double(d)) * 60
@@ -333,7 +333,7 @@ struct EphemerisResult {
     }
 
     var formattedSiderealTime: String {
-        let st = ((siderealTime % 24) + 24) % 24
+        let st = normalizeHours(siderealTime)
         let hours = Int(st)
         let minutesF = (st - Double(hours)) * 60
         let minutes = Int(minutesF)
@@ -374,7 +374,7 @@ struct DegreeSearchMatch: Identifiable {
     }
 
     var formattedPosition: String {
-        let normalized = ((longitude % 360) + 360) % 360
+        let normalized = normalizeDegrees(longitude)
         let d = Int(normalized)
         let minutes = (normalized - Double(d)) * 60
         let m = Int(minutes)
@@ -391,4 +391,17 @@ struct DegreeSearchParams {
     var selectedPlanets: Set<PlanetType>
     var tolerance: Double = 1.0  // degrees tolerance for "exact" match
     var utcOffset: Double = 0.0
+}
+
+
+// MARK: - Helper Functions
+
+func normalizeDegrees(_ degrees: Double) -> Double {
+    let result = degrees.truncatingRemainder(dividingBy: 360)
+    return result < 0 ? result + 360 : result
+}
+
+func normalizeHours(_ hours: Double) -> Double {
+    let result = hours.truncatingRemainder(dividingBy: 24)
+    return result < 0 ? result + 24 : result
 }

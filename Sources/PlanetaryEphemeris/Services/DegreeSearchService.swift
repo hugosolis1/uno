@@ -59,7 +59,7 @@ final class DegreeSearchService {
 
                 // Check if planet crossed the target degree
                 if let prevLon = previousPositions[planetConstant] {
-                    let normalizedTarget = ((params.targetDegree % 360) + 360) % 360
+                    let normalizedTarget = normalizeDegrees(params.targetDegree)
 
                     // Detect crossing
                     let crossed = detectCrossing(previous: prevLon, current: longitude, target: normalizedTarget)
@@ -100,9 +100,9 @@ final class DegreeSearchService {
     // MARK: - Helpers
 
     private func detectCrossing(previous: Double, current: Double, target: Double) -> Bool {
-        let prevNorm = ((previous % 360) + 360) % 360
-        let currNorm = ((current % 360) + 360) % 360
-        let targetNorm = ((target % 360) + 360) % 360
+        let prevNorm = normalizeDegrees(previous)
+        let currNorm = normalizeDegrees(current)
+        let targetNorm = normalizeDegrees(target)
 
         // Check if target is between previous and current
         if prevNorm <= currNorm {
@@ -114,8 +114,8 @@ final class DegreeSearchService {
     }
 
     private func longitudeDifference(_ lon1: Double, _ lon2: Double) -> Double {
-        let diff = ((lon1 - lon2 + 180) % 360) - 180
-        return ((diff + 180) % 360) - 180
+        let diff = angleDiff(lon1, lon2)
+        return angleDiff2(diff)
     }
 
     private func dateFromJulianDay(_ jd: Double) -> Date {
@@ -138,4 +138,23 @@ final class DegreeSearchService {
 
         return calendar.date(from: components) ?? Date()
     }
+}
+
+
+// MARK: - Helper Functions
+
+func normalizeDegrees(_ degrees: Double) -> Double {
+    let result = degrees.truncatingRemainder(dividingBy: 360)
+    return result < 0 ? result + 360 : result
+}
+
+func angleDiff(_ a: Double, _ b: Double) -> Double {
+    let diff = a - b + 180
+    let result = diff.truncatingRemainder(dividingBy: 360)
+    return result < 0 ? result - 180 : result + 180
+}
+
+func angleDiff2(_ diff: Double) -> Double {
+    let result = diff.truncatingRemainder(dividingBy: 360)
+    return result < 0 ? result - 180 : result + 180
 }

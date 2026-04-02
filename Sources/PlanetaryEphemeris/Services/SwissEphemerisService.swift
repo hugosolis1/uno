@@ -76,7 +76,7 @@ final class SwissEphemerisService {
         var positions: [PlanetPosition] = []
 
         for planet in PlanetType.allCases {
-            let pos = calculatePlanet(planet.rawValue, jd: julianDay, flags: flags)
+            let pos = calculatePlanet(Int32(planet.rawValue), jd: julianDay, flags: flags)
             if let pos = pos {
                 positions.append(pos)
             }
@@ -130,9 +130,9 @@ final class SwissEphemerisService {
         var cusps = [Double](repeating: 0.0, count: 13) // cusps[0] unused, 1-12
         var ascmc = [Double](repeating: 0.0, count: 10)
 
-        let hsys = system.letter
+        let Int32(hsys) = system.letter
 
-        let result = swe_houses(julianDay, latitude, longitude, hsys, &cusps, &ascmc)
+        let result = swe_houses(julianDay, latitude, longitude, Int32(hsys), &cusps, &ascmc)
 
         guard result >= 0 else {
             print("[SwissEphemeris] Error calculating houses")
@@ -149,9 +149,9 @@ final class SwissEphemerisService {
         let eqAsc = ascmc[4]  // equatorial ascendant
 
         // IC is opposite of MC
-        let ic = ((mc + 180) % 360)
+        let ic = normalizeDegrees(mc + 180)
         // Descendant is opposite of Ascendant
-        let descendant = ((ascendant + 180) % 360)
+        let descendant = normalizeDegrees(ascendant + 180)
 
         return HouseCusps(
             ascendant: ascendant,
@@ -194,7 +194,7 @@ final class SwissEphemerisService {
         let x = cos(lonRad)
         let ra = atan2(y, x) * 180.0 / .pi
 
-        let normalizedRA = ((ra % 360) + 360) % 360
+        let normalizedRA = normalizeDegrees(ra)
         return (normalizedRA, dec)
     }
 
@@ -244,4 +244,12 @@ extension Int {
     var doubleValue: Double {
         return Double(self)
     }
+}
+
+
+// MARK: - Helper Functions
+
+func normalizeDegrees(_ degrees: Double) -> Double {
+    let result = degrees.truncatingRemainder(dividingBy: 360)
+    return result < 0 ? result + 360 : result
 }
